@@ -1,9 +1,8 @@
-package util
+package zhttp
 
 import (
 	"errors"
 	"github.com/PuerkitoBio/goquery"
-	"github.com/mounsurf/lib/zhttp"
 	"net/url"
 	"regexp"
 	"strings"
@@ -14,8 +13,8 @@ var (
 	relativePathRegex = regexp.MustCompile(`^[\w\d].*`)
 )
 
-func GetResponse(urlStr, cookie string) (*zhttp.Response, error) {
-	resp, err := zhttp.Get(urlStr, &zhttp.RequestOptions{
+func GetResponse(urlStr, cookie string) (*Response, error) {
+	resp, err := Get(urlStr, &RequestOptions{
 		IgnoreCertError: true,
 		RawCookie:       cookie,
 		DisableRedirect: true,
@@ -30,7 +29,7 @@ func GetResponse(urlStr, cookie string) (*zhttp.Response, error) {
 }
 
 func GetResponseInfo(urlStr, cookie string) (string, map[string]string, error) {
-	resp, err := zhttp.Get(urlStr, &zhttp.RequestOptions{
+	resp, err := Get(urlStr, &RequestOptions{
 		IgnoreCertError: true,
 		RawCookie:       cookie,
 		DisableRedirect: true,
@@ -44,8 +43,8 @@ func GetResponseInfo(urlStr, cookie string) (string, map[string]string, error) {
 	return resp.GetBodyString(), resp.HeadersMap(), err
 }
 
-func GetRawResponse(urlStr, cookie string, disableRedirect bool) (*zhttp.Response, error) {
-	resp, err := zhttp.Get(urlStr, &zhttp.RequestOptions{
+func GetRawResponse(urlStr, cookie string, disableRedirect bool) (*Response, error) {
+	resp, err := Get(urlStr, &RequestOptions{
 		IgnoreCertError: true,
 		RawCookie:       cookie,
 		DisableRedirect: disableRedirect,
@@ -60,7 +59,7 @@ func GetRawResponse(urlStr, cookie string, disableRedirect bool) (*zhttp.Respons
 }
 
 func GetRawHeaders(urlStr, cookie string) (string, error) {
-	resp, err := zhttp.Get(urlStr, &zhttp.RequestOptions{
+	resp, err := Get(urlStr, &RequestOptions{
 		IgnoreCertError: true,
 		RawCookie:       cookie,
 		DisableRedirect: true,
@@ -75,7 +74,7 @@ func GetRawHeaders(urlStr, cookie string) (string, error) {
 }
 
 func GetPostResponseInfo(urlStr, cookie, data, contentType string) (string, map[string]string, error) {
-	resp, err := zhttp.Post(urlStr, &zhttp.RequestOptions{
+	resp, err := Post(urlStr, &RequestOptions{
 		IgnoreCertError: true,
 		RawCookie:       cookie,
 		DisableRedirect: true,
@@ -105,7 +104,7 @@ func GetAbsUrl(urlStr string, host string, scheme string) (string, error) {
 	}
 }
 
-//0:全部 1:同源 2:非同源
+// GetATagLink 0:全部 1:同源 2:非同源
 func GetATagLink(body string, urlObj *url.URL, mode int) map[string]struct{} {
 	resultMap := map[string]struct{}{}
 	doc, _ := goquery.NewDocumentFromReader(strings.NewReader(body))

@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"github.com/mounsurf/lib/util"
 	"io"
 	"mime"
 	"mime/multipart"
@@ -346,9 +347,17 @@ func doRequest(method, urlStr string, ro *RequestOptions, cookieJar http.CookieJ
 	if err != nil {
 		return nil, err
 	}
-	if strings.Contains(parsedURL.Hostname(), ".gov.") && strings.Contains(parsedURL.Hostname(), ".edu.") {
-		return nil, errors.New("forbidden domain")
+	// 强制不连接某些站点
+	if err = checkAvailable(parsedURL.Hostname()); err != nil {
+		return nil, err
 	}
+	// 自动忽略IP的证书错误
+	// 不过引入一个问题，如果设置了autoIgnoreCertErr，那么调用方将无法再明确的校验IP的证书
+	// TODO: 鉴于没有想到具体场景，先不解决该问题
+	if autoIgnoreCertErr && util.IpRegex.MatchString(parsedURL.Hostname()) {
+		ro.IgnoreCertError = true
+	}
+
 	urlStr, err = buildURL(parsedURL, ro)
 	if err != nil {
 		return nil, err

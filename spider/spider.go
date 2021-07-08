@@ -1,9 +1,8 @@
 package spider
 
 import (
-	"github.com/mounsurf/lib/util"
-	"github.com/mounsurf/lib/zhttp"
 	"github.com/PuerkitoBio/goquery"
+	"github.com/mounsurf/lib/zhttp"
 	"net/url"
 	"regexp"
 	"strings"
@@ -35,7 +34,7 @@ func GetUrlPageLinks(urlStr string, cookie string, sameOrigin bool) (result []st
 	doc.Find("a").Each(func(i int, selection *goquery.Selection) {
 		link, exists := selection.Attr("href")
 		if exists {
-			link, err = util.GetAbsUrl(link, urlObj.Host, urlObj.Scheme)
+			link, err = zhttp.GetAbsUrl(link, urlObj.Host, urlObj.Scheme)
 			if err != nil {
 				return
 			}
@@ -52,7 +51,7 @@ func GetUrlPageLinks(urlStr string, cookie string, sameOrigin bool) (result []st
 		urlArrList := spiderUrlRegex.FindAllStringSubmatch(selection.Text(), -1)
 		for _, urlArr := range urlArrList {
 			if len(urlArr) == 2 {
-				link, err := util.GetAbsUrl(urlArr[1], urlObj.Host, urlObj.Scheme)
+				link, err := zhttp.GetAbsUrl(urlArr[1], urlObj.Host, urlObj.Scheme)
 				if err != nil {
 					return
 				}

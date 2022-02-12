@@ -160,12 +160,14 @@ func consumeEsData() {
 	for esData := range esQueue {
 		jsonData, err := json.Marshal(esData)
 		if err == nil {
-			_, err := Post(esServer, &RequestOptions{
+			resp, err := Post(esServer, &RequestOptions{
 				ContentType: "application/json",
 				JSON:        string(jsonData),
 			})
 			if err != nil {
-				zlog.Info(err)
+				zlog.Error(err)
+			} else if strings.HasPrefix(resp.GetBodyString(), `{"error"`) {
+				zlog.Error(resp.GetBodyString())
 			}
 		}
 		esWg.Done()

@@ -22,6 +22,15 @@ var (
 	esTagHash string         //标签hash
 	esQueue   chan *EsData   //排队队列
 	esWg      sync.WaitGroup //wait group
+
+	loggedResponseHeaderMap = map[string]bool{
+		"Content-Type":   true,
+		"Content-Length": true,
+		"Location":       true,
+		"Set-Cookie":     true,
+		"Server":         true,
+		"X-Powered-By":   true,
+	}
 )
 
 type EsData struct {
@@ -132,7 +141,10 @@ func logToEs(resp *Response) {
 			if contentType == "" && k == "Content-Type" {
 				contentType = v[0]
 			}
-			responseHeaders[k] = v[0]
+			// 仅记录部分responseHeaders
+			if loggedResponseHeaderMap[k] {
+				responseHeaders[k] = v[0]
+			}
 		}
 		for _, header := range v {
 			responseHeader += fmt.Sprintf("%s: %s\n", k, header)

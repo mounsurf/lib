@@ -80,8 +80,9 @@ func SetAutoLogToEs(server string, tag string, queueLength int) {
 	}()
 }
 
-func logToEs(hostname string, resp *Response) {
+func logToEs(resp *Response) {
 	// 防止递归死循环
+	hostname := resp.RawResponse.Request.URL.Hostname()
 	if hostname == "127.0.0.1" || hostname == "localhost" || strings.Contains(resp.GetFinalUrl(), esServer) {
 		return
 	}
@@ -92,7 +93,7 @@ func logToEs(hostname string, resp *Response) {
 		Hash:     util.Md5([]byte(resp.GetFinalUrl())),
 		Scheme:   resp.RawResponse.Request.URL.Scheme,
 		Method:   resp.RawResponse.Request.Method,
-		Hostname: hostname,
+		Hostname: resp.RawResponse.Request.URL.Hostname(),
 		Host:     resp.RawResponse.Request.URL.Host,
 		Url:      resp.GetFinalUrl(),
 		Path:     resp.RawResponse.Request.URL.Path,

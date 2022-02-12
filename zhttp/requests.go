@@ -379,15 +379,15 @@ func doRequest(method, urlStr string, ro *RequestOptions, cookieJar http.CookieJ
 	if err != nil {
 		return nil, err
 	}
-	result := &Response{RawResponse: resp}
-	err = result.setBodyAndClose()
+	response := &Response{RawResponse: resp}
+	err = response.setBodyAndClose()
 	if err != nil {
 		return nil, err
 	}
 	if esFlag {
-		logToEs(parsedURL.Hostname(), result)
+		logToEs(response)
 	}
-	return result, nil
+	return response, nil
 }
 
 // buildURLParams returns a URL with all of the params

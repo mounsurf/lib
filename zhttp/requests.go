@@ -347,7 +347,7 @@ func doRequest(method, urlStr string, ro *RequestOptions, cookieJar http.CookieJ
 	if err != nil {
 		return nil, err
 	}
-	// 强制不连接某些站点
+	// 强制不连接某些站点，TODO：跳转的情况下，无法禁止
 	if err = checkAvailable(parsedURL.Hostname()); err != nil {
 		return nil, err
 	}

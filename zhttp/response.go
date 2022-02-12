@@ -1,8 +1,12 @@
 package zhttp
 
 import (
+	"bytes"
 	"compress/gzip"
 	"errors"
+	"golang.org/x/net/html"
+	"golang.org/x/net/html/charset"
+	"golang.org/x/text/transform"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -117,9 +121,9 @@ func (r *Response) GetTitle() string {
 	if r == nil {
 		return ""
 	}
-	title := titleRegex.FindSubmatch(r.GetBodyBytes())
-	if title != nil && len(title) >= 1 {
-		return strings.Replace(strings.Replace(string(title[1]), "\n", "", -1), "\r", "", -1)
+	titleResult := titleRegex.FindSubmatch(r.GetBodyBytes())
+	if titleResult != nil && len(titleResult) >= 1 {
+		return html.UnescapeString(strings.Replace(strings.Replace(string(titleResult[1]), "\n", "", -1), "\r", "", -1))
 	}
 	return ""
 }
@@ -221,12 +225,13 @@ func (r *Response) decodeBody() {
 		if length > maxLength {
 			length = maxLength
 		}
-		if gbkRegex.Match(r.body[0:length]) {
-			utf8Body, err := GbkToUtf8(r.body)
-			if err == nil {
-				r.body = utf8Body
-				r.updateContentLength()
-			}
+		e, _, _ := charset.DetermineEncoding(r.body[0:length], "")
+
+		reader := transform.NewReader(bytes.NewReader(r.body), e.NewDecoder())
+		utf8Body, err := ioutil.ReadAll(reader)
+		if err == nil {
+			r.body = utf8Body
+			r.updateContentLength()
 		}
 	}
 }
@@ -262,4 +267,12 @@ func (r *Response) GetAbsoluteLocation() (string, error) {
 			return location, nil
 		}
 	}
+}
+
+//获取最终请求的URL，存在URL跳转的情况下，获取最终跳转的地址
+func (r *Response) GetFinalUrl() string {
+	if r == nil {
+		return ""
+	}
+	return r.RawResponse.Request.URL.String()
 }

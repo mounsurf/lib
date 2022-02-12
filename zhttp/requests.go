@@ -110,6 +110,9 @@ type RequestOptions struct {
 
 	// 禁止跟随跳转
 	DisableRedirect bool
+
+	// 不为空则自动把请求和响应记录到ES
+	EsTag string
 }
 
 func (ro *RequestOptions) closeFiles() {
@@ -382,6 +385,11 @@ func doRequest(method, urlStr string, ro *RequestOptions, cookieJar http.CookieJ
 	err = result.setBodyAndClose()
 	if err != nil {
 		return nil, err
+	}
+	if ro.EsTag != "" {
+		logToEs(parsedURL.Hostname(), result, ro.EsTag)
+	} else if esFlag {
+		logToEs(parsedURL.Hostname(), result, "")
 	}
 	return result, nil
 }

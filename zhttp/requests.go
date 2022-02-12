@@ -370,7 +370,8 @@ func doRequest(method, urlStr string, ro *RequestOptions, cookieJar http.CookieJ
 		return nil, err
 	}
 	if ro.RawPath != "" {
-		req.URL.Path = ro.RawPath
+		//req.URL.Path = ro.RawPath 有bug，改为如下代码
+		req.URL.RawPath = ro.RawPath
 	}
 	parseHosts(req, ro)
 	addCookies(req, ro)

@@ -61,7 +61,6 @@ func SetEsServer(server string) {
 
 func CloseAutoLogToEs() {
 	esFlag = false
-	close(esQueue)
 }
 func SetAutoLogToEs(server string, tag string, queueLength int) {
 	esFlag = true
@@ -72,10 +71,7 @@ func SetAutoLogToEs(server string, tag string, queueLength int) {
 	}
 	//判断是否为空、是否已经关闭，未关闭则关闭
 	if esQueue != nil {
-		_, isClose := <-esQueue
-		if !isClose {
-			close(esQueue)
-		}
+		close(esQueue)
 	}
 	if queueLength <= 0 {
 		queueLength = defaultQueueLength

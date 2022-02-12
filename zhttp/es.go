@@ -10,16 +10,23 @@ import (
 	"time"
 )
 
+const (
+	defaultServer      = "http://localhost:9200/zhttp/log/" //默认server
+	defaultQueueLength = 50                                 //默认50长度
+)
+
 var (
-	esFlag   bool   //是否自动记录到ES
-	esServer string //"http://localhost:9200/zhttp/log/"
-	esTag    string
-	esQueue  = make(chan *EsData, 50)
-	esWg     sync.WaitGroup
+	esFlag    bool           //是否自动记录到ES
+	esServer  string         //"http://localhost:9200/zhttp/log/"
+	esTag     string         //标签
+	esTagHash string         //标签hash
+	esQueue   chan *EsData   //排队队列
+	esWg      sync.WaitGroup //wait group
 )
 
 type EsData struct {
-	Tag             string            `json:"tag"`    // 标签
+	Tag             string            `json:"tag"` // 标签
+	TagHash         string            `json:"tag_hash"`
 	Hash            string            `json:"hash"`   // 请求hash，请求body的hash
 	Scheme          string            `json:"scheme"` // 协议
 	Method          string            `json:"method"`
@@ -40,32 +47,48 @@ type EsData struct {
 
 func SetEsServer(server string) {
 	esServer = server
+	esQueue = make(chan *EsData, 50)
 }
 
-func SetAutoLogToEs(server string, tag string) {
+func CloseAutoLogToEs() {
+	esFlag = false
+	close(esQueue)
+}
+func SetAutoLogToEs(server string, tag string, queueLength int) {
 	esFlag = true
 	if server == "" {
-		esServer = "http://localhost:9200/zhttp/log/"
+		esServer = defaultServer
 	} else {
 		esServer = server
 	}
+	//判断是否为空、是否已经关闭，未关闭则关闭
+	if esQueue != nil {
+		_, isClose := <-esQueue
+		if !isClose {
+			close(esQueue)
+		}
+	}
+	if queueLength <= 0 {
+		queueLength = defaultQueueLength
+	}
+	esQueue = make(chan *EsData, queueLength)
+
 	esTag = tag
+	esTagHash = util.Md5([]byte(tag + time.Now().String()))
 	go func() {
 		consumeEsData()
 	}()
 }
 
-func logToEs(hostname string, resp *Response, tag string) {
+func logToEs(hostname string, resp *Response) {
 	// 防止递归死循环
 	if hostname == "127.0.0.1" || hostname == "localhost" || strings.Contains(resp.GetFinalUrl(), esServer) {
 		return
 	}
-	if tag == "" {
-		tag = esTag
-	}
 
 	esData := &EsData{
-		Tag:      tag,
+		Tag:      esTag,
+		TagHash:  esTagHash,
 		Hash:     util.Md5([]byte(resp.GetFinalUrl())),
 		Scheme:   resp.RawResponse.Request.URL.Scheme,
 		Method:   resp.RawResponse.Request.Method,
@@ -129,10 +152,8 @@ func logToEs(hostname string, resp *Response, tag string) {
 }
 
 func addToEsQueue(esData *EsData) {
-	//var data map[string]interface{}
 	esWg.Add(1)
 	esQueue <- esData
-
 }
 
 func consumeEsData() {

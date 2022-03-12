@@ -2,7 +2,7 @@ package zhttp
 
 import (
 	"fmt"
-	"lib/util"
+	"github.com/mounsurf/lib/util"
 )
 
 /**

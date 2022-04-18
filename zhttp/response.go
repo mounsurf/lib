@@ -6,6 +6,7 @@ import (
 	"errors"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/charset"
+	"golang.org/x/text/encoding"
 	"golang.org/x/text/transform"
 	"io/ioutil"
 	"net/http"
@@ -225,9 +226,13 @@ func (r *Response) decodeBody() {
 		if length > maxLength {
 			length = maxLength
 		}
-		e, _, _ := charset.DetermineEncoding(r.body[0:length], "")
-
-		reader := transform.NewReader(bytes.NewReader(r.body), e.NewDecoder())
+		e, _, certain := charset.DetermineEncoding(r.body[0:length], "")
+		var reader *transform.Reader
+		if certain {
+			reader = transform.NewReader(bytes.NewReader(r.body), e.NewDecoder())
+		} else {
+			reader = transform.NewReader(bytes.NewReader(r.body), encoding.Nop.NewDecoder())
+		}
 		utf8Body, err := ioutil.ReadAll(reader)
 		if err == nil {
 			r.body = utf8Body

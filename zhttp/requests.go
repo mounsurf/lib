@@ -336,6 +336,10 @@ func doRequest(method, urlStr string, ro *RequestOptions, cookieJar http.CookieJ
 	if ro == nil {
 		ro = &RequestOptions{}
 	}
+	//设置全局代理
+	if ro.Proxies == nil && globalProxies != nil {
+		ro.Proxies = globalProxies
+	}
 	defer ro.closeFiles()
 	if ro.DialTimeout == 0 {
 		ro.DialTimeout = 10 * time.Second

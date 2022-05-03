@@ -6,10 +6,6 @@ import (
 	"strings"
 )
 
-var (
-	notice *Notice
-)
-
 type Notice struct {
 	Api     string `yaml:"api"`
 	Keyword string `yaml:"keyword"`
@@ -24,15 +20,12 @@ type MessageText struct {
 	Content string `json:"content"`
 }
 
-func Init(inotice *Notice) {
-	notice = inotice
-}
 func (n *Notice) SendMessage(content string) error {
 	if n == nil || n.Api == "" || n.Keyword == "" || content == "" {
 		return nil
 	}
 	if !strings.Contains(content, n.Keyword) {
-		content = "【" + n.Keyword + "】\n" + content
+		content = n.Keyword + "\n" + content
 	}
 	message := Message{
 		MsgType: "text",
@@ -49,10 +42,4 @@ func (n *Notice) SendMessage(content string) error {
 		JSON:      string(data),
 	})
 	return err
-}
-func SendMessage(content string) error {
-	if notice == nil {
-		return nil
-	}
-	return notice.SendMessage(content)
 }

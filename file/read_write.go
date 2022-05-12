@@ -31,7 +31,7 @@ func ReadLines(fileName string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	lines := []string{}
+	var lines []string
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
 		lines = append(lines, strings.TrimRight(scanner.Text(), "\r\n"))

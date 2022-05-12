@@ -2,6 +2,7 @@ package file
 
 import (
 	"io/ioutil"
+	"os"
 	"strings"
 )
 
@@ -28,7 +29,7 @@ func GetDirFiles(dir string, containsSubPath bool) ([]string, error) {
 }
 
 func GetFileName(fileNameWithPath string) string {
-	index := strings.LastIndex(fileNameWithPath, "/")
+	index := strings.LastIndexByte(fileNameWithPath, os.PathSeparator)
 	if index < 0 {
 		return fileNameWithPath
 	} else if index == len(fileNameWithPath)-1 {
